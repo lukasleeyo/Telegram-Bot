@@ -6,7 +6,7 @@ const bodyParser = require('body-parser');
 var AWS = require("aws-sdk");
 const moment = require('moment-timezone');
 const app = express();
-
+var now = new moment().tz("Asia/Singapore");
 const telegram = new Telegram(process.env.BOT_TOKEN);
 const bot = new Telegraf(process.env.BOT_TOKEN);
 // bot.telegram.setWebhook(`${process.env.BOT_DOMAIN}/bot${process.env.BOT_TOKEN}`) // comment this out when hosting on local machine
@@ -56,7 +56,6 @@ AWS.config.update({
 function GetLatestSavedMessageFromDB(callback) {
   var docClient = new AWS.DynamoDB.DocumentClient();
   var table = "Cat1Again";
-  var now = new moment().tz("Asia/Singapore");
   var latestTelegramMsg = '';
   var params = {
     TableName: table,
@@ -85,7 +84,6 @@ function SaveMessageToDB(message) {
   var docClient = new AWS.DynamoDB.DocumentClient();
   var table = "Cat1Again";
   var teleMsg = message;
-  var now = new moment();
   var params = {
     TableName: table,
     Item: {
