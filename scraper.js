@@ -9,7 +9,7 @@ let message = '';
 
 
 async function startBrowser() {
-    const browser = await puppeteer.launch({ slowMo: 30 , args: ['--no-sandbox'] }); //slowmo 30ms to ensure credentials are entered in a timely manner
+    const browser = await puppeteer.launch({ slowMo: 30, args: ['--no-sandbox'] }); //slowmo 30ms to ensure credentials are entered in a timely manner
     const page = await browser.newPage();
     return { browser, page };
 }
@@ -69,9 +69,9 @@ async function scrapWeb(url) {
         console.log("Not working");
     }
     else {
-        // console.log('Sector:', sector);
-        // console.log('CAT: ', CAT);
-        // console.log('validity: ', validity);
+        // console.log(sector);
+        // console.log(CAT);
+        // console.log(validity);
 
         // display all sector clear if all sector's CAT status is 0
         if (!CAT.includes('1')) {
@@ -79,15 +79,50 @@ async function scrapWeb(url) {
         }
         else // show which sector is CAT 1
         {
-            message = `CAT 1 (${validity[0]})\n`;
-            message += `Sector: `;
+            var CAT1List = [];
 
+            // add only CAT 1 sectors to new list
             for (var i = 0; i < CAT.length; i++) {
                 if (CAT[i] == 1) {
-                    console.log(sector[i]);
-                    message += `${sector[i]}`
+                    CAT1List.push({
+                        sector: sector[i],
+                        validity: validity[i]
+                    });
                 }
             }
+
+            // add all the validity timing into a list
+            var validityList = [];
+            for (var i = 0; i < CAT1List.length; i++) {
+                validityList.push(CAT1List[i].validity);
+            }
+
+            // using sets to find out unique validity timing
+            const uniqueValidityList = validityList => {
+                return [...new Set(validityList)];
+            };
+
+            //console.log(uniqueValidityList(validityList));
+
+            message = 'CAT 1\n';
+
+            // loop through unique validity timing and display a group of sectors under same validity timing
+            for (var i = 0; i < uniqueValidityList(validityList).length; i++) {
+                message += uniqueValidityList(validityList)[i] + '\n';
+                message += 'Sector: ';
+                for (var j = 0; j < CAT1List.length; j++) {
+                    if (CAT1List[j].validity == uniqueValidityList(validityList)[i]) {
+                        if (j == CAT1List.length - 1) {
+                            message += CAT1List[j].sector + '\n';
+                        }
+                        else {
+                            message += CAT1List[j].sector + ', ';
+                        }
+                    }
+                }
+
+            }
+
 
         }
     }
@@ -95,7 +130,7 @@ async function scrapWeb(url) {
     // ends the scrapping session
     await closeBrowser(browser);
     return message
-    
+
 
 
     //await browser.waitForTarget(()=> false);
