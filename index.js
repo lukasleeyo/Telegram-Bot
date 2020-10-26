@@ -13,13 +13,8 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 app.use(bot.webhookCallback(`/bot${process.env.BOT_TOKEN}`));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// TODO:
-// 1. anyone can send a post req, so need to authorize request
-// 2. for 2 hour periods, every 5 mins, if cat status changed, send msg, else, do nothing.
-// at end of 2 hour period, if cat status doesnt change, send msg.
-// app.post('/sms', async (req, res) => {
 
-
+//AWS sdk configuration for dynamodb
 AWS.config.update({
   region: "ap-southeast-1",
   endpoint: "https://dynamodb.ap-southeast-1.amazonaws.com"
@@ -28,9 +23,7 @@ AWS.config.update({
 
 
 (async () => {
-  // start scraping by logging in
-  // TODO:
-  // 1. retry scrapping web if login fails, happened before but rare.
+  // start scraping
   const message = await scraper.scrapWeb(process.env.WEB_LOGIN_URL);
   // retrieve latest telegram sent message
   GetLatestSavedMessageFromDB(function (response) {
@@ -47,42 +40,41 @@ AWS.config.update({
       telegram.sendMessage(process.env.CHANNEL_ID, message).catch((err) => console.log(err));
     }
   });
-
-
   // process.exit(1);
 })();
 
-
+// function to retrieve latest sent telegram msg
 function GetLatestSavedMessageFromDB(callback) {
   var docClient = new AWS.DynamoDB.DocumentClient();
-  var table = "Cat1Again";
+  var table = "Cat1Again"; //table name is Cat1Again
   var latestTelegramMsg = '';
-  var params = {
+  var params = {  // parameters to retrieve all telegram messages by descending time
     TableName: table,
     KeyConditionExpression: "keyDate = :todayDate and keyDateTime < :currentTime",
     ExpressionAttributeValues: {
       ":todayDate": now.format("DD/MM/YYYY"),
       ":currentTime": now.format("HH:mm:ss")
     },
-    ScanIndexForward: false // false for this means results will be in descending order
+    ScanIndexForward: false // false for this property means descending order
   };
 
+  // performs retrieval query
   docClient.query(params, function (err, data) {
     if (err) {
       console.log(JSON.stringify(err, null, 2));
     } else {
-      console.log(data["Items"][0]["keyDateTime"]);
+      console.log("query no error");
       latestTelegramMsg = data["Items"][0]["message"];
       //console.log("I am here and i have it: "+ latestTelegramMsg);
-      return callback(latestTelegramMsg);
+      return callback(latestTelegramMsg);  //callback of result for outside method to access it
     }
   });
 }
 
-
+// save the scraped message to db
 function SaveMessageToDB(message) {
   var docClient = new AWS.DynamoDB.DocumentClient();
-  var table = "Cat1Again";
+  var table = "Cat1Again";  // table name is Cat1Again
   var teleMsg = message;
   var params = {
     TableName: table,
@@ -94,7 +86,6 @@ function SaveMessageToDB(message) {
   };
 
   console.log("Adding a new message to dynamodb...");
-
   docClient.put(params, function (err, data) {
     if (err) {
       console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
@@ -103,9 +94,6 @@ function SaveMessageToDB(message) {
     }
   });
 }
-
-  //res.send('message was sent');
-// });
 
 // const port = process.env.PORT || 3000;
 // app.listen(port, () => console.log(`Express server listening on port ${port}`));

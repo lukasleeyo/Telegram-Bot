@@ -102,8 +102,6 @@ async function scrapWeb(url) {
                 return [...new Set(validityList)];
             };
 
-            //console.log(uniqueValidityList(validityList));
-
             message = 'CAT 1\n';
 
             // loop through unique validity timing and display a group of sectors under same validity timing
@@ -112,7 +110,7 @@ async function scrapWeb(url) {
                 message += 'Sector: ';
                 for (var j = 0; j < CAT1List.length; j++) {
                     if (CAT1List[j].validity == uniqueValidityList(validityList)[i]) {
-                        if (j == CAT1List.length - 1) {
+                        if (j == CAT1List.length - 1) {  // if j reaches last record, remove , and put newline
                             message += CAT1List[j].sector + '\n';
                         }
                         else {
@@ -135,13 +133,5 @@ async function scrapWeb(url) {
 
     //await browser.waitForTarget(()=> false);
 }
-
-// (async () => {
-//     // start scraping by logging in
-//     // TODO:
-//     // 1. retry scrapping web if login fails, happened before but rare.
-//     await scrapWeb(C.login_url);
-//     process.exit(1);
-// })();
 
 exports.scrapWeb = scrapWeb;
